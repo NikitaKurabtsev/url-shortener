@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/NikitaKurabtsev/url-shortener/internal/config"
 	"log/slog"
 	"os"
+
+	"github.com/NikitaKurabtsev/url-shortener/internal/config"
+	"github.com/NikitaKurabtsev/url-shortener/internal/lib/logger/sl"
+	"github.com/NikitaKurabtsev/url-shortener/internal/storage/sqlite"
 )
 
 const (
@@ -19,10 +22,16 @@ func main() {
 
 	log := setupLogger(envDev)
 	log.Info("starting url-shortener", slog.String("env", cfg.Env))
-	log.Debug("debug message")
 
 	// TODO: init storage: sqlite
+	storage, err := sqlite.NewStorage(cfg.StoragePath)
+	if err != nil {
+		log.Error("error occurred while initializing storage", sl.Err(err))
+		os.Exit(1)
+	}
+	log.Info("storage initialized")
 
+	_ = storage
 	// TODO: init router: chi, chi render
 
 	// TODO: init run server: net/http
