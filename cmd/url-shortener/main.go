@@ -14,11 +14,9 @@ const (
 )
 
 func main() {
-	// TODO: init config: cleanenv
 	cfg := config.InitConfig()
 	fmt.Println(cfg)
 
-	// TODO: init logger: slog
 	logger := setupLogger(envDev)
 
 	// TODO: init storage: sqlite
