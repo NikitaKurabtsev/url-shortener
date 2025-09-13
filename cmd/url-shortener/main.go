@@ -8,6 +8,7 @@ import (
 	"github.com/NikitaKurabtsev/url-shortener/internal/config"
 	"github.com/NikitaKurabtsev/url-shortener/internal/lib/logger/sl"
 	"github.com/NikitaKurabtsev/url-shortener/internal/storage/sqlite"
+	"github.com/go-chi/chi/v5"
 )
 
 const (
@@ -29,10 +30,9 @@ func main() {
 		log.Error("error occurred while initializing storage", sl.Err(err))
 		os.Exit(1)
 	}
-	log.Info("storage initialized")
 
-	_ = storage
 	// TODO: init router: chi, chi render
+	router := chi.NewRouter()
 
 	// TODO: init run server: net/http
 }
