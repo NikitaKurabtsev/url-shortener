@@ -9,3 +9,6 @@ migrate-down:
 
 migrate-version:
 	migrate -path $(SCHEMA_DIR) -database $(DB_URL) version
+
+run:
+	CONFIG_PATH=./config/local.yml go run cmd/url-shortener/main.go
