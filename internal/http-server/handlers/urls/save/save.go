@@ -26,6 +26,7 @@ type Response struct {
 
 const aliasLength = 6
 
+//go:generate go run github.com/vektra/mockery/v2@v2.53.5 --name=URLSaver
 type URLSaver interface {
 	SaveURL(urlToSave, alias string) (int64, error)
 }
@@ -44,7 +45,9 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			log.Error("failed to decode request body", sl.Err(err))
+
 			render.JSON(w, r, response.Error("failed to decode request"))
+
 			return
 		}
 
@@ -54,7 +57,10 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		if err != nil {
 			validationErr := err.(validator.ValidationErrors)
 			log.Error("invalid request", sl.Err(err))
+
+			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.ValidationError(validationErr))
+
 			return
 		}
 
@@ -63,20 +69,27 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 			alias = random.NewRandomString(aliasLength)
 		}
 
-		id, err := urlSaver.SaveURL(req.URL, req.Alias)
+		id, err := urlSaver.SaveURL(req.URL, alias)
 		if err != nil {
 			if errors.Is(err, storage.ErrUrlExists) {
 				log.Info("url already exists", sl.Err(err))
+
+				render.Status(r, http.StatusBadRequest)
 				render.JSON(w, r, response.Error("url already exists"))
+
 				return
 			}
-			log.Error("failed to save", sl.Err(err))
+			log.Error("failed to save url", sl.Err(err))
+
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, response.Error("failed to save url"))
+
 			return
 		}
 
 		log.Info("url added", "id", id)
 
+		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, Response{
 			Response: response.OK(),
 			Alias:    alias,
