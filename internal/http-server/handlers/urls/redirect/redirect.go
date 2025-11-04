@@ -2,14 +2,15 @@ package redirect
 
 import (
 	"errors"
+	"log/slog"
+	"net/http"
+
 	"github.com/NikitaKurabtsev/url-shortener/internal/lib/api/response"
 	"github.com/NikitaKurabtsev/url-shortener/internal/lib/logger/sl"
 	"github.com/NikitaKurabtsev/url-shortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"log/slog"
-	"net/http"
 )
 
 //go:generate go run github.com/vektra/mockery/v2@v2.53.5 --name=URLGetter
