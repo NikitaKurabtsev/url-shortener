@@ -23,8 +23,8 @@ func New(log *slog.Logger, urlSaver URLGetter) http.HandlerFunc {
 		op := "handlers.urls.redirect.New"
 
 		log = slog.With(
-			slog.With("op", op),
-			slog.With("request_id", middleware.GetReqID(r.Context())),
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		alias := chi.URLParam(r, "alias")
