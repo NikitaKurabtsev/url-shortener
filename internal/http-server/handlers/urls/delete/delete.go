@@ -19,7 +19,7 @@ type URLDeleter interface {
 
 func New(log *slog.Logger, urlDeleter URLDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		op := "handlers.urls.delete.New"
+		const op = "handlers.urls.delete.New"
 
 		log = slog.With(
 			slog.String("op", op),
