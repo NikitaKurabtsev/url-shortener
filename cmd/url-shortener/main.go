@@ -31,27 +31,29 @@ func main() {
 	log := setupLogger(envDev)
 	log.Info("starting url-shortener", slog.String("env", cfg.Env))
 
-	// TODO: init storage: sqlite
 	storage, err := sqlite.NewStorage(cfg.StoragePath)
 	if err != nil {
 		log.Error("error occurred while initializing storage", sl.Err(err))
 		os.Exit(1)
 	}
 
-	_ = storage
-
-	// TODO: init router: chi, chi render
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(mwLogger.New(log))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", save.New(log, storage))
-	router.Post("/url/{alias}", redirect.New(log, storage))
-	router.Delete("/url/{alias}", delete.New(log, storage))
+	router.Route("/url", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("url-shortener", map[string]string{
+			cfg.HTTPServer.User: cfg.HTTPServer.Password,
+		}))
 
-	// TODO: init run server: net/http
+		r.Post("/", save.New(log, storage))
+		r.Delete("/{alias}", delete.New(log, storage))
+	})
+
+	router.Post("/url/{alias}", redirect.New(log, storage))
+
 	log.Info("start server", slog.String("address", cfg.Address))
 
 	srv := http.Server{
