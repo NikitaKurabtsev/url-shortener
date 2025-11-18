@@ -29,7 +29,7 @@ func New(log *slog.Logger, urlSaver URLGetter) http.HandlerFunc {
 
 		alias := chi.URLParam(r, "alias")
 		if alias == "" {
-			log.Info("alias is empty")
+			log.Error("alias is empty")
 
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, response.Error("alias is empty"))
@@ -39,7 +39,7 @@ func New(log *slog.Logger, urlSaver URLGetter) http.HandlerFunc {
 
 		url, err := urlSaver.GetURL(alias)
 		if errors.Is(err, storage.ErrUrlNotFound) {
-			log.Info("url not found", "alias", alias)
+			log.Error("url not found", "alias", alias)
 
 			render.Status(r, http.StatusNotFound)
 			render.JSON(w, r, response.Error("not found"))
