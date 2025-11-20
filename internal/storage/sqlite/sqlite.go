@@ -32,15 +32,10 @@ func NewStorage(storagePath string) (*Storage, error) {
 func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 	const op = "storage.sqlite.SaveURL"
 
-	stmt, err := s.db.Prepare("INSERT INTO urls(url, alias) VALUES(?, ?)")
+	res, err := s.db.Exec("INSERT INTO urls(url, alias) VALUES(?, ?)", urlToSave, alias)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
-	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec(urlToSave, alias)
-	if err != nil {
-		if sqliteErr, ok := err.(sqlite3.Error); ok && errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique) {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) && sqliteErr.Code == sqlite3.ErrConstraint {
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrUrlExists)
 		}
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -57,14 +52,8 @@ func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 func (s *Storage) GetURL(alias string) (string, error) {
 	const op = "storage.sqlite.GetURL"
 
-	stmt, err := s.db.Prepare("SELECT url FROM urls WHERE alias = ?")
-	if err != nil {
-		return "", fmt.Errorf("%s: prepare statement: %w", op, err)
-	}
-	defer stmt.Close()
-
 	var resURL string
-	err = stmt.QueryRow(alias).Scan(&resURL)
+	err := s.db.QueryRow("SELECT url FROM urls WHERE alias = ?", alias).Scan(&resURL)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", fmt.Errorf("%s: %w", op, storage.ErrUrlNotFound)
@@ -78,13 +67,7 @@ func (s *Storage) GetURL(alias string) (string, error) {
 func (s *Storage) DeleteURL(alias string) error {
 	const op = "storage.sqlite.DeleteURL"
 
-	stmt, err := s.db.Prepare("DELETE FROM urls WHERE alias = ?")
-	if err != nil {
-		return fmt.Errorf("%s: prepare statement: %w", op, err)
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(alias)
+	_, err := s.db.Exec("DELETE FROM urls WHERE alias = ?", alias)
 	if err != nil {
 		return fmt.Errorf("%s: exec statement: %w", op, err)
 	}
