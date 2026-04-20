@@ -65,8 +65,6 @@ func TestSaveHandler(t *testing.T) {
 			var expectedStatus int
 			if tt.url == "" {
 				expectedStatus = http.StatusBadRequest
-			} else if tt.url == "" {
-				expectedStatus = http.StatusInternalServerError
 			} else if tt.mockError != nil {
 				expectedStatus = http.StatusInternalServerError
 			} else {
